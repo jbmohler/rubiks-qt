@@ -1,13 +1,17 @@
-from PySide6 import QtWidgets, QtCore
 import traceback
+import importlib
+from PySide6 import QtWidgets, QtCore, QtGui
+
+import rubiks
 
 def get_load():
-    exec('import rubix')
-    return rubix
+    return importlib.reload(rubiks)
 
-class QRubix(QWidget):
+class QRubix(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(QRubix, self).__init__()
+
+        self.setMinimumSize(300, 300)
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
@@ -24,7 +28,7 @@ class QRubix(QWidget):
         qp.end()
 
 
-class QRubixFrame(QMainWindow):
+class QRubixFrame(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(QRubixFrame, self).__init__()
 
@@ -35,4 +39,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     w = QRubixFrame()
     w.show()
-    app.exec_()
+    app.exec()
