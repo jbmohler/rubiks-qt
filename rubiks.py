@@ -20,7 +20,7 @@ class Rubiks:
                 '+z': 4,
                 '-z': 5}
 
-    FACE_LEFT = [ (0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
+    FACE_LEFT = [ (0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
 
     ADJ_LEFT = {
         '+z': [
@@ -157,7 +157,7 @@ def draw(painter, cube, pers, north):
     east_p = cross(north_p, normvec)
 
     MARGIN = 50
-    SQSIZE= 60
+    SQSIZE= 80
 
     faces = []
 
@@ -177,14 +177,11 @@ def draw(painter, cube, pers, north):
     painter.drawText(200, 15, str(faces))
 
     for face in faces:
-        # get coords of corner of the face
-
-        # draw polygon
-
         for i in range(3):
             for j in range(3):
-                color = cube.label(face, i, 2-j)
+                color = cube.label(face, i, j)
 
+                # get coords of corner of the face
                 if face == '+x':
                     rect = [
                             (1., -1.+i*2/3, -1.+j*2/3),
@@ -232,9 +229,10 @@ def draw(painter, cube, pers, north):
                 for p3d in rect:
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(QtCore.QPointF(
-                        150+dot(north_p, on_plane)*SQSIZE,
-                        150+dot(east_p, on_plane)*SQSIZE,
+                        200+dot(north_p, on_plane)*SQSIZE,
+                        200+dot(east_p, on_plane)*SQSIZE,
                         ))
 
+                # draw polygon
                 painter.setBrush(QtGui.QColor(HEX_COLORS[color]))
                 painter.drawPolygon(poly)

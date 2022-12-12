@@ -11,10 +11,10 @@ class QRubix(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(QRubix, self).__init__()
 
-        self.setMinimumSize(300, 300)
+        self.setMinimumSize(500, 500)
 
         self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(1000)
+        self.timer.setInterval(5000)
         self.timer.timeout.connect(self.reset)
         self.timer.start()
 
@@ -22,16 +22,27 @@ class QRubix(QtWidgets.QWidget):
         self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
         self.north = (0, 10, 0)
-        self.perspective = (10, -10, 10)
+        self.perspective = (10, 10, 10)
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
+
+        self.ops = list(reversed([
+                ('+y', 'r'),
+                ('+z', 'r'),
+                ('+y', 'l'),
+                ('+z', 'l'),
+                ]*6))
+        self.ops = self.ops[:2]
 
     def reset(self):
         #self.index = (self.index + 1) % 6
         #self.perspective = self._pers[self.index]
 
-        self.cube.rotate('-z', 'r')
+        if len(self.ops) > 0:
+            face, lr = self.ops.pop()
+            print(face, lr)
+            self.cube.rotate(face, lr)
 
         self.update()
 
