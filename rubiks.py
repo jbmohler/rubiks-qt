@@ -1,3 +1,4 @@
+import math
 import random
 
 HEX_COLORS = {
@@ -10,7 +11,7 @@ HEX_COLORS = {
         }
 
 class Rubiks:
-    COLORS = 'WYROBG'
+    COLORS = 'BGORWY'
     OFFSET = {
                 '+x': 0,
                 '-x': 1,
@@ -23,88 +24,40 @@ class Rubiks:
 
     ADJ_LEFT = {
         '+z': [
-            ('+x', 0, 0),
-            ('+x', 0, 1),
-            ('+x', 0, 2),
-            ('+y', 0, 0),
-            ('+y', 0, 1),
-            ('+y', 0, 2),
-            ('-x', 0, 0),
-            ('-x', 0, 1),
-            ('-x', 0, 2),
-            ('-y', 0, 0),
-            ('-y', 0, 1),
-            ('-y', 0, 2),
+            ('+x', [(i, 2) for i in (0, 1, 2)]),
+            ('+y', [(i, 2) for i in (0, 1, 2)]),
+            ('-x', [(i, 2) for i in (0, 1, 2)]),
+            ('-y', [(i, 2) for i in (0, 1, 2)]),
             ] ,
         '-z': [
-            ('+x', 2, 2),
-            ('+x', 2, 1),
-            ('+x', 2, 0),
-            ('+y', 2, 2),
-            ('+y', 2, 1),
-            ('+y', 2, 0),
-            ('-x', 2, 2),
-            ('-x', 2, 1),
-            ('-x', 2, 0),
-            ('-y', 2, 2),
-            ('-y', 2, 1),
-            ('-y', 2, 0),
+            ('+y', [(i, 0) for i in (0, 1, 2)]),
+            ('+x', [(i, 0) for i in (0, 1, 2)]),
+            ('-y', [(i, 0) for i in (0, 1, 2)]),
+            ('-x', [(i, 0) for i in (0, 1, 2)]),
             ],
         '+x':[
-            ('+z', 0, 0),
-            ('+z', 1, 0),
-            ('+z', 2, 0),
-            ('+y', 0, 0),
-            ('+y', 1, 0),
-            ('+y', 2, 0),
-            ('-z', 0, 0),
-            ('-z', 1, 0),
-            ('-z', 2, 0),
-            ('-y', 0, 0),
-            ('-y', 1, 0),
-            ('-y', 2, 0),
+            ('+y', [(0, i) for i in (0, 1, 2)]),
+            ('+z', [(0, i) for i in (0, 1, 2)]),
+            ('-y', [(0, i) for i in (0, 1, 2)]),
+            ('-z', [(0, i) for i in (0, 1, 2)]),
             ],
         '-x':[
-            ('-z', 0, 2),
-            ('-z', 1, 2),
-            ('-z', 2, 2),
-            ('-y', 0, 2),
-            ('-y', 1, 2),
-            ('-y', 2, 2),
-            ('+z', 0, 2),
-            ('+z', 1, 2),
-            ('+z', 2, 2),
-            ('+y', 0, 2),
-            ('+y', 1, 2),
-            ('+y', 2, 2),
+            ('+z', [(2, i) for i in (0, 1, 2)]),
+            ('+y', [(2, i) for i in (0, 1, 2)]),
+            ('-z', [(2, i) for i in (0, 1, 2)]),
+            ('-y', [(2, i) for i in (0, 1, 2)]),
             ],
         '+y':[
-            ('+z', 0, 0),
-            ('+z', 1, 0),
-            ('+z', 2, 0),
-            ('+x', 0, 0),
-            ('+x', 1, 0),
-            ('+x', 2, 0),
-            ('-z', 0, 0),
-            ('-z', 1, 0),
-            ('-z', 2, 0),
-            ('-x', 0, 0),
-            ('-x', 1, 0),
-            ('-x', 2, 0),
+            ('+z', [(2, i) for i in (0, 1, 2)]),
+            ('+x', [(2, i) for i in (0, 1, 2)]),
+            ('-z', [(2, i) for i in (0, 1, 2)]),
+            ('-x', [(2, i) for i in (0, 1, 2)]),
             ],
         '-y':[
-            ('+z', 0, 2),
-            ('+z', 1, 2),
-            ('+z', 2, 2),
-            ('+x', 0, 2),
-            ('+x', 1, 2),
-            ('+x', 2, 2),
-            ('-z', 0, 2),
-            ('-z', 1, 2),
-            ('-z', 2, 2),
-            ('-x', 0, 2),
-            ('-x', 1, 2),
-            ('-x', 2, 2),
+            ('+x', [(0, i) for i in (0, 1, 2)]),
+            ('+z', [(0, i) for i in (0, 1, 2)]),
+            ('-x', [(0, i) for i in (0, 1, 2)]),
+            ('-z', [(0, i) for i in (0, 1, 2)]),
             ],
         }
 
@@ -138,11 +91,12 @@ class Rubiks:
             x, y = xy
             self.set_label(face, x, y, color)
 
+        adjacent = [(f, xy[0], xy[1]) for f, coords in self.ADJ_LEFT[face] for xy in coords]
         pebbles = None
         if lr == 'l':
-            pebbles = list(self.ADJ_LEFT[face])
+            pebbles = adjacent
         elif lr == 'r':
-            pebbles = list(reversed(self.ADJ_LEFT[face]))
+            pebbles = list(reversed(adjacent))
 
         adj = [self.label(axis, x, y) for axis, x, y in pebbles]
 
@@ -153,29 +107,134 @@ class Rubiks:
             self.set_label(ax, x, y, color)
 
 
-def draw(painter, cube, pers):
+def dot(v1, v2):
+    return sum(c1*c2 for c1, c2 in zip(v1, v2))
+
+def cross(v1, v2):
+    return (
+            v1[1]*v2[2]-v1[2]*v2[1],
+            v1[0]*v2[2]-v1[2]*v2[0],
+            v1[0]*v2[1]-v1[1]*v2[0],
+            )
+
+def make_unit(v):
+    rad = math.sqrt(sum(c**2 for c in v))
+    return tuple(c/rad for c in v)
+
+def pp_plane(p1, p2, nv):
+    # the plane in question is plane perpendicular to nv passing through the
+    # point at 2*nv; the plane is tangent to the 2 sphere centered at the
+    # origin
+
+    # plane equation given by
+    #  nv <dot> (x, y, z) = 2 * nv <dot> nv
+
+    # line equation given by p1 + t * (p2 - p1) intersects the plane at ...
+    # nv <dot> (p1x + t * (p2x - p1x), .. ) = 2 * nv <dot> nv
+    # nv <dot> p1 + t * nv <dot> (p2-p1) = 2 * nv <dot> nv
+
+    # solving for t, we get
+    # t = (2 * nv <dot> nv - nv <dot> p1) / (nv <dot> (p2-p1))
+
+    delta = (p2[0] - p1[0], p2[1] - p1[1], p2[1] - p1[1])
+    t = (2 * dot(nv, nv) - dot(nv, p1)) / dot(nv, delta)
+    return (p1[0] + t*delta[0], p1[1] + t*delta[1], p1[2] + t*delta[2])
+
+def draw(painter, cube, pers, north):
     from PySide6 import QtWidgets, QtCore, QtGui
+
+    # rescale pers to be on a sphere of radius 10 from the origin
+    rad = math.sqrt(sum(c**2 for c in pers))
+    pers = tuple(c*10./rad for c in pers)
+    normvec = tuple(c*1./rad for c in pers)
+
+    north_p = pp_plane((0, 0, 0), north, normvec)
+
+    # make unit vector north
+    north_p = make_unit(north_p)
+
+    # make 3rd vector of frame (north <cross> normvec)
+    east_p = cross(north_p, normvec)
 
     MARGIN = 50
     SQSIZE= 40
 
+    faces = []
+
     if pers[0] > 0:
-        face = "+x"
+        faces.append("+x")
     if pers[1] > 0:
-        face = "+y"
+        faces.append("+y")
     if pers[2] > 0:
-        face = "+z"
+        faces.append("+z")
     if pers[0] < 0:
-        face = "-x"
+        faces.append("-x")
     if pers[1] < 0:
-        face = "-y"
+        faces.append("-y")
     if pers[2] < 0:
-        face = "-z"
+        faces.append("-z")
 
-    painter.drawText(200, 15, face)
+    painter.drawText(200, 15, str(faces))
 
-    for i in range(3):
-        for j in range(3):
-            color = cube.label(face, i, j)
-            painter.setBrush(QtGui.QColor(HEX_COLORS[color]))
-            painter.drawRect(MARGIN+i*SQSIZE, MARGIN+j*SQSIZE, SQSIZE, SQSIZE)
+    for face in faces:
+        # get coords of corner of the face
+
+        # draw polygon
+
+        for i in range(3):
+            for j in range(3):
+                color = cube.label(face, i, 2-j)
+
+                if face == '+x':
+                    rect = [
+                            (1., -1.+i*2/3, -1.+j*2/3),
+                            (1., -1.+i*2/3, -1.+j*2/3+2/3),
+                            (1., -1.+i*2/3+2/3, -1.+j*2/3+2/3),
+                            (1., -1.+i*2/3+2/3, -1.+j*2/3),
+                            ]
+                if face == '-x':
+                    rect = [
+                            (-1., -1.+i*2/3, -1.+j*2/3),
+                            (-1., -1.+i*2/3, -1.+j*2/3+2/3),
+                            (-1., -1.+i*2/3+2/3, -1.+j*2/3+2/3),
+                            (-1., -1.+i*2/3+2/3, -1.+j*2/3),
+                            ]
+                if face == '+y':
+                    rect = [
+                            (-1.+i*2/3, 1., -1.+j*2/3),
+                            (-1.+i*2/3, 1., -1.+j*2/3+2/3),
+                            (-1.+i*2/3+2/3, 1., -1.+j*2/3+2/3),
+                            (-1.+i*2/3+2/3, 1., -1.+j*2/3),
+                            ]
+                if face == '-y':
+                    rect = [
+                            (-1.+i*2/3, -1., -1.+j*2/3),
+                            (-1.+i*2/3, -1., -1.+j*2/3+2/3),
+                            (-1.+i*2/3+2/3, -1., -1.+j*2/3+2/3),
+                            (-1.+i*2/3+2/3, -1., -1.+j*2/3),
+                            ]
+                if face == '+z':
+                    rect = [
+                            (-1.+i*2/3., -1.+j*2/3, +1),
+                            (-1.+i*2/3, -1.+j*2/3+2/3, +1),
+                            (-1.+i*2/3+2/3, -1.+j*2/3+2/3, +1),
+                            (-1.+i*2/3+2/3., -1.+j*2/3, +1),
+                            ]
+                if face == '-z':
+                    rect = [
+                            (-1.+i*2/3., -1.+j*2/3, -1),
+                            (-1.+i*2/3, -1.+j*2/3+2/3, -1),
+                            (-1.+i*2/3+2/3, -1.+j*2/3+2/3, -1),
+                            (-1.+i*2/3+2/3., -1.+j*2/3, -1),
+                            ]
+
+                poly = QtGui.QPolygonF()
+                for p3d in rect:
+                    on_plane = pp_plane(p3d, pers, normvec)
+                    poly.append(QtCore.QPointF(
+                        dot(north_p, on_plane)*SQSIZE,
+                        dot(east_p, on_plane)*SQSIZE,
+                        ))
+
+                painter.setBrush(QtGui.QColor(HEX_COLORS[color]))
+                painter.drawPolygon(poly)

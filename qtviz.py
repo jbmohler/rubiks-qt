@@ -21,7 +21,8 @@ class QRubix(QtWidgets.QWidget):
         self.index = 0
         self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
-        self.perspective = (0, 10, 0)
+        self.north = (-10, 0, 0)
+        self.perspective = (0, 10, 10)
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
@@ -30,8 +31,7 @@ class QRubix(QtWidgets.QWidget):
         #self.index = (self.index + 1) % 6
         #self.perspective = self._pers[self.index]
 
-        self.cube.rotate('-z', 'l')
-        self.cube.rotate('+z', 'r')
+        self.cube.rotate('-z', 'r')
 
         self.update()
 
@@ -40,7 +40,7 @@ class QRubix(QtWidgets.QWidget):
         qp.begin(self)
 
         try:
-            self.engine.draw(qp, self.cube, self.perspective)
+            self.engine.draw(qp, self.cube, self.perspective, self.north)
         except Exception as e:
             traceback.print_exc()
 
