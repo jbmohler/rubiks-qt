@@ -136,7 +136,7 @@ def pp_plane(p1, p2, nv):
     # solving for t, we get
     # t = (2 * nv <dot> nv - nv <dot> p1) / (nv <dot> (p2-p1))
 
-    delta = (p2[0] - p1[0], p2[1] - p1[1], p2[1] - p1[1])
+    delta = (p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2])
     t = (2 * dot(nv, nv) - dot(nv, p1)) / dot(nv, delta)
     return (p1[0] + t*delta[0], p1[1] + t*delta[1], p1[2] + t*delta[2])
 
@@ -157,7 +157,7 @@ def draw(painter, cube, pers, north):
     east_p = cross(north_p, normvec)
 
     MARGIN = 50
-    SQSIZE= 40
+    SQSIZE= 60
 
     faces = []
 
@@ -232,8 +232,8 @@ def draw(painter, cube, pers, north):
                 for p3d in rect:
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(QtCore.QPointF(
-                        dot(north_p, on_plane)*SQSIZE,
-                        dot(east_p, on_plane)*SQSIZE,
+                        150+dot(north_p, on_plane)*SQSIZE,
+                        150+dot(east_p, on_plane)*SQSIZE,
                         ))
 
                 painter.setBrush(QtGui.QColor(HEX_COLORS[color]))

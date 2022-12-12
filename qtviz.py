@@ -21,8 +21,8 @@ class QRubix(QtWidgets.QWidget):
         self.index = 0
         self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
-        self.north = (-10, 0, 0)
-        self.perspective = (0, 10, 10)
+        self.north = (0, 10, 0)
+        self.perspective = (10, -10, 10)
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
