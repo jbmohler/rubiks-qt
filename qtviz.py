@@ -13,38 +13,11 @@ class QRubix(QtWidgets.QWidget):
 
         self.setMinimumSize(500, 500)
 
-        self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(5000)
-        self.timer.timeout.connect(self.reset)
-        self.timer.start()
-
-        #self.index = 0
-        #self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
-
         self.north = (0, 10, 0)
         self.perspective = (10, 10, 10)
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
-
-        self.ops = list(reversed([
-                ('+y', 'r'),
-                ('+z', 'r'),
-                ('+y', 'l'),
-                ('+z', 'l'),
-                ]*6))
-        self.ops = self.ops[:4]
-
-    def reset(self):
-        #self.index = (self.index + 1) % 6
-        #self.perspective = self._pers[self.index]
-
-        if len(self.ops) > 0:
-            face, lr = self.ops.pop()
-            print(face, lr)
-            self.cube.rotate(face, lr)
-
-        self.update()
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
@@ -62,8 +35,54 @@ class QRubixFrame(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(QRubixFrame, self).__init__()
 
-        self.rubix = QRubix()
-        self.setCentralWidget(self.rubix)
+        self.tiles = QtWidgets.QWidget()
+        self.layout = QtWidgets.QHBoxLayout(self.tiles)
+
+        self.rubix1 = QRubix()
+        self.rubix2 = QRubix()
+
+        self.rubix2.cube = self.rubix1.cube
+        self.rubix2.perspective = (-10, -10, -10)
+        self.rubix2.north = (0, -10, 0)
+
+        self.layout.addWidget(self.rubix1)
+        self.layout.addWidget(self.rubix2)
+
+        self.setCentralWidget(self.tiles)
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.reset)
+        self.timer.start()
+
+        #self.index = 0
+        #self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
+
+        self.ops = list(reversed([
+                ('+y', 'r'),
+                ('+z', 'r'),
+                ('+y', 'l'),
+                ('+z', 'l'),
+                ]*6))
+        #self.ops = self.ops[:4]
+
+    def keyPressEvent(self, event):
+        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_X:
+            print('done')
+            self.timer.stop()
+
+    def reset(self):
+        #self.index = (self.index + 1) % 6
+        #self.perspective = self._pers[self.index]
+
+        if len(self.ops) > 0:
+            face, lr = self.ops.pop()
+            print(face, lr)
+            self.rubix1.cube.rotate(face, lr)
+
+        self.rubix1.update()
+        self.rubix2.update()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
