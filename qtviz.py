@@ -13,15 +13,34 @@ class QRubix(QtWidgets.QWidget):
 
         self.setMinimumSize(300, 300)
 
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.reset)
+        self.timer.start()
+
+        self.index = 0
+        self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
+
+        self.perspective = (0, 10, 0)
+
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
+
+    def reset(self):
+        #self.index = (self.index + 1) % 6
+        #self.perspective = self._pers[self.index]
+
+        self.cube.rotate('-z', 'l')
+        self.cube.rotate('+z', 'r')
+
+        self.update()
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
         qp.begin(self)
 
         try:
-            self.engine.draw(qp, self.cube)
+            self.engine.draw(qp, self.cube, self.perspective)
         except Exception as e:
             traceback.print_exc()
 
