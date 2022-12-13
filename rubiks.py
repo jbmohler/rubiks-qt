@@ -5,13 +5,13 @@ HEX_COLORS = {
         'W': '#ffffff',
         'B': '#0000ff',
         'G': '#00ff00',
-        'O': '#ffa500',
-        'R': '#ff0000',
-        'Y': '#ffff00',
+        'O': '#f08000',
+        'R': '#d70040',
+        'Y': '#fdda0d',
         }
 
 class Rubiks:
-    COLORS = 'BGORWY'
+    COLORS = 'ROBGWY'
     OFFSET = {
                 '+x': 0,
                 '-x': 1,
@@ -157,7 +157,7 @@ def draw(painter, cube, pers, north):
     east_p = cross(north_p, normvec)
 
     MARGIN = 50
-    SQSIZE= 80
+    SQSIZE= 140
 
     faces = []
 
@@ -175,6 +175,10 @@ def draw(painter, cube, pers, north):
         faces.append("-z")
 
     painter.drawText(200, 15, str(faces))
+
+    pen = QtGui.QPen(QtGui.QColor('black'))
+    pen.setWidth(2)
+    painter.setPen(pen)
 
     for face in faces:
         for i in range(3):

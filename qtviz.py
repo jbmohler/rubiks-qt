@@ -42,7 +42,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.rubix2 = QRubix()
 
         self.rubix2.cube = self.rubix1.cube
-        self.rubix2.perspective = (-10, -10, -10)
+        self.rubix2.perspective = (-5, -8, -8)
         self.rubix2.north = (0, -10, 0)
 
         self.layout.addWidget(self.rubix1)
@@ -51,7 +51,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.setCentralWidget(self.tiles)
 
         self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(1000)
+        self.timer.setInterval(500)
         self.timer.timeout.connect(self.reset)
         self.timer.start()
 
@@ -59,11 +59,21 @@ class QRubixFrame(QtWidgets.QMainWindow):
         #self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
         self.ops = list(reversed([
+                ('+y', 'l'),
+                ('+z', 'r'),
                 ('+y', 'r'),
+                ('+z', 'l'),
+                ]*6))
+        """self.ops = list(reversed([
+                ('+z', 'r'),
+                ('+y', 'r'),
+                ('+z', 'l'),
+                ('-y', 'l'),
                 ('+z', 'r'),
                 ('+y', 'l'),
                 ('+z', 'l'),
-                ]*6))
+                ('-y', 'r'),
+                ]))"""
         #self.ops = self.ops[:4]
 
     def keyPressEvent(self, event):
