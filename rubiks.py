@@ -139,20 +139,22 @@ def navigate(pers, nstar, direction):
     north = make_unit(vsum(nstar, vneg(pers)))
     east = cross(north, perp)
 
+    NAV_DISTANCE = .3
+
     if direction == 'north':
         # move pers and nstar north
-        pers = vsum(pers, on_sphere(north, .1))
-        north = vsum(north, on_sphere(north, .1))
+        pers = vsum(pers, on_sphere(north, NAV_DISTANCE))
+        north = vsum(north, on_sphere(north, NAV_DISTANCE))
     elif direction == 'south':
         # move pers and nstar south
-        pers = vsum(pers, on_sphere(vneg(north), .1))
-        north = vsum(north, on_sphere(vneg(north), .1))
+        pers = vsum(pers, on_sphere(vneg(north), NAV_DISTANCE))
+        north = vsum(north, on_sphere(vneg(north), NAV_DISTANCE))
     elif direction == 'east':
         # move pers east (keep nstar same)
-        pers = vsum(pers, on_sphere(east, .1))
+        pers = vsum(pers, on_sphere(east, NAV_DISTANCE))
     elif direction == 'west':
         # move pers west (keep nstar same)
-        pers = vsum(pers, on_sphere(vneg(east), .1))
+        pers = vsum(pers, on_sphere(vneg(east), NAV_DISTANCE))
 
     return pers, nstar
 
@@ -175,21 +177,18 @@ def pp_plane(p1, p2, nv):
     t = (2 * dot(nv, nv) - dot(nv, p1)) / dot(nv, delta)
     return (p1[0] + t*delta[0], p1[1] + t*delta[1], p1[2] + t*delta[2])
 
-def draw(painter, cube, pers, north):
+def draw(painter, cube, pers, nstar):
     from PySide6 import QtWidgets, QtCore, QtGui
 
     # rescale pers to be on a sphere of radius 10 from the origin
-    rad = math.sqrt(sum(c**2 for c in pers))
-    pers = tuple(c*10./rad for c in pers)
-    normvec = tuple(c*1./rad for c in pers)
+    pers = on_sphere(pers, 10.)
+    normvec = on_sphere(pers, 1.)
 
-    north_p = pp_plane((0, 0, 0), north, normvec)
+    north_p = pp_plane((0, 0, 0), nstar, normvec)
 
-    # make unit vector north
-    north_p = make_unit(north_p)
-
-    # make 3rd vector of frame (north <cross> normvec)
-    east_p = cross(north_p, normvec)
+    # make unit vector north and east on the viewing plane
+    north = make_unit(vsum(north_p, vneg(pp_plane((0, 0, 0), pers, normvec))))
+    east = cross(north, normvec)
 
     MARGIN = 50
     SQSIZE= 140
@@ -268,8 +267,8 @@ def draw(painter, cube, pers, north):
                 for p3d in rect:
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(QtCore.QPointF(
-                        200+dot(north_p, on_plane)*SQSIZE,
-                        200+dot(east_p, on_plane)*SQSIZE,
+                        200+dot(east, on_plane)*SQSIZE,
+                        200+dot(north, on_plane)*SQSIZE,
                         ))
 
                 # draw polygon

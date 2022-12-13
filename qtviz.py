@@ -21,8 +21,6 @@ class QRubix(QtWidgets.QWidget):
         self.cube = self.engine.Rubiks()
 
     def navigate(self, direction):
-        print(f'navigating {direction}')
-
         self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
 
         self.update()
