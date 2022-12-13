@@ -11,6 +11,7 @@ class QRubix(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(QRubix, self).__init__()
 
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumSize(500, 500)
 
         self.north = (0, 10, 0)
@@ -18,6 +19,23 @@ class QRubix(QtWidgets.QWidget):
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
+
+    def navigate(self, direction):
+        print(f'navigating {direction}')
+
+        self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
+
+        self.update()
+
+    def keyPressEvent(self, event):
+        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Up:
+            self.navigate('north')
+        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Down:
+            self.navigate('south')
+        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Right:
+            self.navigate('east')
+        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Left:
+            self.navigate('west')
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()

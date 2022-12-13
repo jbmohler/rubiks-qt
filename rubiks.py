@@ -121,6 +121,41 @@ def make_unit(v):
     rad = math.sqrt(sum(c**2 for c in v))
     return tuple(c/rad for c in v)
 
+def on_sphere(p3, radius):
+    vlen = math.sqrt(sum(c**2 for c in p3))
+    return tuple(c*radius/vlen for c in p3)
+
+def vsum(v1, v2):
+    return [c1+c2 for c1, c2 in zip(v1, v2)]
+
+def vneg(v):
+    return [-c for c in v]
+
+def navigate(pers, nstar, direction):
+    pers = on_sphere(pers, 10)
+    nstar = on_sphere(nstar, 10)
+
+    perp = make_unit(pers)
+    north = make_unit(vsum(nstar, vneg(pers)))
+    east = cross(north, perp)
+
+    if direction == 'north':
+        # move pers and nstar north
+        pers = vsum(pers, on_sphere(north, .1))
+        north = vsum(north, on_sphere(north, .1))
+    elif direction == 'south':
+        # move pers and nstar south
+        pers = vsum(pers, on_sphere(vneg(north), .1))
+        north = vsum(north, on_sphere(vneg(north), .1))
+    elif direction == 'east':
+        # move pers east (keep nstar same)
+        pers = vsum(pers, on_sphere(east, .1))
+    elif direction == 'west':
+        # move pers west (keep nstar same)
+        pers = vsum(pers, on_sphere(vneg(east), .1))
+
+    return pers, nstar
+
 def pp_plane(p1, p2, nv):
     # the plane in question is plane perpendicular to nv passing through the
     # point at 2*nv; the plane is tangent to the 2 sphere centered at the
