@@ -64,8 +64,13 @@ class Rubiks:
     def __init__(self):
         self.sides = [color for color in self.COLORS for _ in range(9)]
 
-        #random.shuffle(self.sides)
+    def scramble(self):
+        for n in range(30):
+            sign = random.choice('+-')
+            axis = random.choice('xyz')
+            direction = random.choice('lr')
 
+            self.rotate(f'{sign}{axis}', direction)
 
     def label(self, face, x, y):
         offset = self.OFFSET
@@ -190,8 +195,8 @@ def draw(painter, cube, pers, nstar):
     north = make_unit(vsum(north_p, vneg(pp_plane((0, 0, 0), pers, normvec))))
     east = cross(north, normvec)
 
-    MARGIN = 50
-    SQSIZE= 140
+    CENTER = 200
+    SQSIZE = 120
 
     faces = []
 
@@ -267,8 +272,8 @@ def draw(painter, cube, pers, nstar):
                 for p3d in rect:
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(QtCore.QPointF(
-                        200+dot(east, on_plane)*SQSIZE,
-                        200+dot(north, on_plane)*SQSIZE,
+                        CENTER+dot(east, on_plane)*SQSIZE,
+                        CENTER+dot(north, on_plane)*SQSIZE,
                         ))
 
                 # draw polygon

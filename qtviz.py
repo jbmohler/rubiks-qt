@@ -19,6 +19,7 @@ class QRubix(QtWidgets.QWidget):
 
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
+        #self.cube.scramble()
 
     def navigate(self, direction):
         self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
