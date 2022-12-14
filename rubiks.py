@@ -5,9 +5,9 @@ HEX_COLORS = {
         'W': '#ffffff',
         'B': '#0000ff',
         'G': '#00ff00',
-        'O': '#f08000',
+        'O': '#ff7518',
         'R': '#d70040',
-        'Y': '#fdda0d',
+        'Y': '#ffea00',
         }
 
 class Rubiks:
@@ -37,14 +37,14 @@ class Rubiks:
             ],
         '+x':[
             ('+y', [(0, i) for i in (0, 1, 2)]),
-            ('+z', [(0, i) for i in (0, 1, 2)]),
-            ('-y', [(2, i) for i in (0, 1, 2)]),
-            ('-z', [(2, i) for i in (0, 1, 2)]),
+            ('+z', [(i, 0) for i in (0, 1, 2)]),
+            ('-y', [(2, i) for i in (2, 1, 0)]),
+            ('-z', [(i, 0) for i in (2, 1, 0)]),
             ],
         '-x':[
-            ('+z', [(2, i) for i in (0, 1, 2)]),
+            ('+z', [(i, 2) for i in (0, 1, 2)]),
             ('+y', [(2, i) for i in (0, 1, 2)]),
-            ('-z', [(0, i) for i in (0, 1, 2)]),
+            ('-z', [(i, 2) for i in (0, 1, 2)]),
             ('-y', [(0, i) for i in (0, 1, 2)]),
             ],
         '+y':[
@@ -62,7 +62,7 @@ class Rubiks:
         }
 
     def __init__(self):
-        self.sides = [color for color in self.COLORS for _ in range(9)]
+        self.sides = self.solved_map()
 
     def scramble(self):
         for n in range(30):
@@ -71,6 +71,12 @@ class Rubiks:
             direction = random.choice('lr')
 
             self.rotate(f'{sign}{axis}', direction)
+
+    def solved_map(self):
+        return [color for color in self.COLORS for _ in range(9)]
+
+    def is_solved(self):
+        return self.sides == self.solved_map()
 
     def label(self, face, x, y):
         offset = self.OFFSET
@@ -273,7 +279,7 @@ def draw(painter, cube, pers, nstar):
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(QtCore.QPointF(
                         CENTER+dot(east, on_plane)*SQSIZE,
-                        CENTER+dot(north, on_plane)*SQSIZE,
+                        CENTER-dot(north, on_plane)*SQSIZE,
                         ))
 
                 # draw polygon
