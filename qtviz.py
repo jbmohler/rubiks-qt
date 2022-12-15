@@ -20,7 +20,7 @@ class QRubix(QtWidgets.QWidget):
         self.engine = get_load()
         self.cube = self.engine.Rubiks()
 
-        self.cube.scramble()
+        #self.cube.scramble()
 
     def navigate(self, direction):
         self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
@@ -104,10 +104,9 @@ class QRubixFrame(QtWidgets.QMainWindow):
                 #    raise RuntimeError(f'one of the action of {face} solved')
         self.ops = [
             ('+z', 'l'),
-            ('+x', 'r'), 
+            ('+x', 'l'), 
             ('-x', 'l'),
         ]
-        self.ops = []
 
     def keyPressEvent(self, event):
         if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_X:

@@ -20,44 +20,54 @@ class Rubiks:
                 '+z': 4,
                 '-z': 5}
 
-    FACE_LEFT = [ (0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
+    FACE_ROT1 = [ (0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
+    FACE_ROT2 = [ (0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
+
+    FACE_LEFT = {
+            '+z': FACE_ROT1,
+            '-z': FACE_ROT2,
+            '+x': FACE_ROT1,
+            '-x': FACE_ROT2,
+            '+y': FACE_ROT1,
+            '-y': FACE_ROT2,
+            }
 
     ADJ_LEFT = {
         '+z': [
-            ('+x', [(i, 2) for i in (0, 1, 2)]),
-            ('+y', [(i, 2) for i in (0, 1, 2)]),
-            ('-x', [(i, 2) for i in (0, 1, 2)]),
-            ('-y', [(i, 2) for i in (0, 1, 2)]),
+            ('+x', [(y, 2) for y in (0, 1, 2)]),
+            ('+y', [(x, 2) for x in (2, 1, 0)]),
+            ('-x', [(y, 2) for y in (2, 1, 0)]),
+            ('-y', [(x, 2) for x in (0, 1, 2)]),
             ] ,
         '-z': [
-            ('+y', [(i, 0) for i in (0, 1, 2)]),
-            ('+x', [(i, 0) for i in (0, 1, 2)]),
-            ('-y', [(i, 0) for i in (0, 1, 2)]),
-            ('-x', [(i, 0) for i in (0, 1, 2)]),
+            ('+y', [(x, 0) for x in (0, 1, 2)]),
+            ('+x', [(y, 0) for y in (2, 1, 0)]),
+            ('-y', [(x, 0) for x in (2, 1, 0)]),
+            ('-x', [(y, 0) for y in (0, 1, 2)]),
             ],
         '+x':[
-            ('+y', [(0, i) for i in (0, 1, 2)]),
-            ('+z', [(i, 0) for i in (0, 1, 2)]),
-            ('-y', [(2, i) for i in (2, 1, 0)]),
-            ('-z', [(i, 0) for i in (2, 1, 0)]),
+            ('+y', [(2, z) for z in (0, 1, 2)]),
+            ('+z', [(2, y) for y in (2, 1, 0)]),
+            ('-y', [(2, z) for z in (2, 1, 0)]),
+            ('-z', [(2, y) for y in (0, 1, 2)]),
             ],
         '-x':[
-            ('+z', [(i, 2) for i in (0, 1, 2)]),
-            ('+y', [(2, i) for i in (0, 1, 2)]),
-            ('-z', [(i, 2) for i in (0, 1, 2)]),
-            ('-y', [(0, i) for i in (0, 1, 2)]),
+            ('+z', [(0, y) for y in (0, 1, 2)]),
+            ('+y', [(0, z) for z in (2, 1, 0)]),
+            ('-z', [(0, y) for y in (2, 1, 0)]),
+            ('-y', [(0, z) for z in (0, 1, 2)]),
             ],
         '+y':[
-            ('+z', [(2, i) for i in (0, 1, 2)]),
-            ('+x', [(2, i) for i in (0, 1, 2)]),
-            ('-z', [(0, i) for i in (2, 1, 0)]),
-            ('-x', [(0, i) for i in (2, 1, 0)]),
+            ('+z', [(x, 2) for x in (0, 1, 2)]),
+            ('+x', [(2, z) for z in (2, 1, 0)]),
+            ('-z', [(x, 2) for x in (2, 1, 0)]),
+            ('-x', [(2, z) for z in (0, 1, 2)]),
             ],
         '-y':[
-            ('+x', [(0, i) for i in (2, 1, 0)]),
-            ('+z', [(0, i) for i in (2, 1, 0)]),
-            ('-x', [(2, i) for i in (0, 1, 2)]),
-            ('-z', [(2, i) for i in (0, 1, 2)]),
+            ('+x', [(0, z) for z in (0, 1, 2)]),
+            ('+z', [(x, 0) for x in (2, 1, 0)]),
+            ('-x', [(0, z) for z in (2, 1, 0)]),
+            ('-z', [(x, 0) for x in (0, 1, 2)]),
             ],
         }
 
@@ -89,10 +99,11 @@ class Rubiks:
 
     def rotate(self, face, lr):
         pebbles = None
+        face_left = self.FACE_LEFT[face]
         if lr == 'l':
-            pebbles = list(self.FACE_LEFT)
+            pebbles = list(face_left)
         elif lr == 'r':
-            pebbles = list(reversed(self.FACE_LEFT))
+            pebbles = list(reversed(face_left))
 
         adj = [self.label(face, x, y) for x, y in pebbles]
 
@@ -116,7 +127,6 @@ class Rubiks:
         for color, ax_xy in zip(adj, pebbles):
             ax, x, y = ax_xy
             self.set_label(ax, x, y, color)
-
 
 def dot(v1, v2):
     return sum(c1*c2 for c1, c2 in zip(v1, v2))
