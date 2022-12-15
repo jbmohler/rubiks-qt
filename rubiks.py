@@ -194,9 +194,20 @@ def vsum(v1, v2):
 def vneg(v):
     return [-c for c in v]
 
+def vsmul(scalar, v):
+    return [scalar*c for c in v]
+
+def norm_north(pers, nstar):
+    pers = on_sphere(pers, 10)
+    nstar = on_sphere(nstar, 10)
+
+    perp = make_unit(pers)
+    north = make_unit(vsum(nstar, vneg(pers)))
+    east = cross(north, perp)
+
+    return pers, vsum(pers, north)
+
 def navigate(pers, nstar, direction):
-    vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
-    print(vstr(pers), 'north ', vstr(nstar))
     pers = on_sphere(pers, 10)
     nstar = on_sphere(nstar, 10)
 
@@ -216,14 +227,17 @@ def navigate(pers, nstar, direction):
         nstar = vsum(nstar, on_sphere(vneg(north), NAV_DISTANCE))
     elif direction == 'east':
         # move pers east (keep nstar same)
+        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, perp)))
         pers = vsum(pers, on_sphere(east, NAV_DISTANCE))
     elif direction == 'west':
         # move pers west (keep nstar same)
+        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, perp)))
         pers = vsum(pers, on_sphere(vneg(east), NAV_DISTANCE))
 
-
-
-    print(vstr(pers), 'north ', vstr(nstar))
+    vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
+    print('before', vstr(pers), 'north ', vstr(nstar))
+    pers, nstar = norm_north(pers, nstar)
+    print('after', vstr(pers), 'north ', vstr(nstar))
 
     return pers, nstar
 
@@ -264,17 +278,17 @@ def draw(painter, cube, pers, nstar):
 
     faces = []
 
-    if pers[0] > 0:
+    if pers[0] > 1:
         faces.append("+x")
-    if pers[1] > 0:
+    if pers[1] > 1:
         faces.append("+y")
-    if pers[2] > 0:
+    if pers[2] > 1:
         faces.append("+z")
-    if pers[0] < 0:
+    if pers[0] < -1:
         faces.append("-x")
-    if pers[1] < 0:
+    if pers[1] < -1:
         faces.append("-y")
-    if pers[2] < 0:
+    if pers[2] < -1:
         faces.append("-z")
 
     painter.drawText(200, 15, str(faces))

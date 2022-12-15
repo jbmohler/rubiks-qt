@@ -14,10 +14,13 @@ class QRubix(QtWidgets.QWidget):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumSize(500, 500)
 
+        self.engine = get_load()
+
         self.north = (0, 10, 0)
         self.perspective = (10, 10, 10)
 
-        self.engine = get_load()
+        self.perspective, self.north = self.engine.norm_north(self.perspective, self.north)
+
         self.cube = self.engine.Rubiks()
 
         self.cube.scramble()
