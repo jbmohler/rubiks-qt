@@ -195,6 +195,8 @@ def vneg(v):
     return [-c for c in v]
 
 def navigate(pers, nstar, direction):
+    vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
+    print(vstr(pers), 'north ', vstr(nstar))
     pers = on_sphere(pers, 10)
     nstar = on_sphere(nstar, 10)
 
@@ -207,17 +209,21 @@ def navigate(pers, nstar, direction):
     if direction == 'north':
         # move pers and nstar north
         pers = vsum(pers, on_sphere(north, NAV_DISTANCE))
-        north = vsum(north, on_sphere(north, NAV_DISTANCE))
+        nstar = vsum(nstar, on_sphere(north, NAV_DISTANCE))
     elif direction == 'south':
         # move pers and nstar south
         pers = vsum(pers, on_sphere(vneg(north), NAV_DISTANCE))
-        north = vsum(north, on_sphere(vneg(north), NAV_DISTANCE))
+        nstar = vsum(nstar, on_sphere(vneg(north), NAV_DISTANCE))
     elif direction == 'east':
         # move pers east (keep nstar same)
         pers = vsum(pers, on_sphere(east, NAV_DISTANCE))
     elif direction == 'west':
         # move pers west (keep nstar same)
         pers = vsum(pers, on_sphere(vneg(east), NAV_DISTANCE))
+
+
+
+    print(vstr(pers), 'north ', vstr(nstar))
 
     return pers, nstar
 
@@ -344,4 +350,4 @@ def draw(painter, cube, pers, nstar):
                 # draw polygon
                 painter.setBrush(QtGui.QColor(HEX_COLORS[color]))
                 painter.drawPolygon(poly)
-                painter.drawText(center, f'{i}-{j}')
+                #painter.drawText(center, f'{i}-{j}')
