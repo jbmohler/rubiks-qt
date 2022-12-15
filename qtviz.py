@@ -23,7 +23,7 @@ class QRubix(QtWidgets.QWidget):
 
         self.cube = self.engine.Rubiks()
 
-        self.cube.scramble()
+        self.ops = self.cube.scramble()
 
     def navigate(self, direction):
         self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
@@ -57,17 +57,31 @@ class QRubixFrame(QtWidgets.QMainWindow):
         super(QRubixFrame, self).__init__()
 
         self.tiles = QtWidgets.QWidget()
-        self.layout = QtWidgets.QHBoxLayout(self.tiles)
+        self.layout = QtWidgets.QGridLayout(self.tiles)
 
-        self.rubix1 = QRubix()
-        self.rubix2 = QRubix()
+        self.rubix_views = [QRubix() for _ in range(8)]
 
-        self.rubix2.cube = self.rubix1.cube
-        self.rubix2.perspective = (-5, -8, -8)
-        self.rubix2.north = (0, -10, 0)
+        import itertools
+        corners = itertools.product([-1, 1], [-1, 1], [-1, 1])
 
-        self.layout.addWidget(self.rubix1)
-        self.layout.addWidget(self.rubix2)
+        for index, rbx in enumerate(self.rubix_views):
+            if index != 0:
+                rbx.cube = self.rubix_views[0].cube
+
+            x, y, z = next(corners)
+            rbx.perspective = (x*5, y*5, z*5)
+            rbx.north = (x*5, y*5+3, z*5)
+
+        self.ops = [(face, 'l' if lr=='r' else 'r') for face, lr in self.rubix_views[0].ops]
+
+        self.layout.addWidget(self.rubix_views[0], 0, 0)
+        self.layout.addWidget(self.rubix_views[1], 1, 0)
+        self.layout.addWidget(self.rubix_views[2], 2, 0)
+        self.layout.addWidget(self.rubix_views[3], 0, 1)
+        self.layout.addWidget(self.rubix_views[4], 2, 1)
+        self.layout.addWidget(self.rubix_views[5], 0, 2)
+        self.layout.addWidget(self.rubix_views[6], 1, 2)
+        self.layout.addWidget(self.rubix_views[7], 2, 2)
 
         self.setCentralWidget(self.tiles)
 
@@ -79,13 +93,14 @@ class QRubixFrame(QtWidgets.QMainWindow):
         #self.index = 0
         #self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
+        """
         self.ops = list(reversed([
                 ('+y', 'l'),
                 ('+z', 'r'),
                 ('+y', 'r'),
                 ('+z', 'l'),
                 ]*6))
-        """self.ops = list(reversed([
+        self.ops = list(reversed([
                 ('+z', 'r'),
                 ('+y', 'r'),
                 ('+z', 'l'),
@@ -94,7 +109,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
                 ('+y', 'l'),
                 ('+z', 'l'),
                 ('-y', 'r'),
-                ]))"""
+                ]))
         #self.ops = self.ops[:4]
 
         self.ops = []
@@ -111,6 +126,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
             ('-x', 'l'),
         ]
         self.ops = []
+                """
 
     def keyPressEvent(self, event):
         if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_X:
@@ -128,10 +144,10 @@ class QRubixFrame(QtWidgets.QMainWindow):
         if len(self.ops) > 0:
             face, lr = self.ops.pop()
             print(face, lr)
-            self.rubix1.cube.rotate(face, lr)
+            self.rubix_views[0].cube.rotate(face, lr)
 
-        self.rubix1.update()
-        self.rubix2.update()
+        for rbx in self.rubix_views:
+            rbx.update()
 
 
 if __name__ == '__main__':

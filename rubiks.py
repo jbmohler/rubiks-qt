@@ -76,13 +76,16 @@ class Rubiks:
         self.sides = self.solved_map()
 
     def scramble(self):
+        actions = []
         for n in range(30):
             sign = random.choice('+-')
             axis = random.choice('xyz')
             direction = random.choice('lr')
 
             print(f'{sign}{axis}', direction)
+            actions.append((f'{sign}{axis}', direction))
             self.rotate(f'{sign}{axis}', direction)
+        return actions
 
     def solved_map(self):
         return [color for color in self.COLORS for _ in range(9)]
@@ -211,9 +214,10 @@ def navigate(pers, nstar, direction):
     pers = on_sphere(pers, 10)
     nstar = on_sphere(nstar, 10)
 
-    perp = make_unit(pers)
-    north = make_unit(vsum(nstar, vneg(pers)))
-    east = cross(north, perp)
+    normvec = make_unit(pers)
+    nstar_p = pp_plane((0, 0, 0), nstar, normvec)
+    north = make_unit(vsum(nstar_p, vsmul(-2, normvec)))
+    east = cross(north, normvec)
 
     NAV_DISTANCE = .3
 
@@ -227,11 +231,11 @@ def navigate(pers, nstar, direction):
         nstar = vsum(nstar, on_sphere(vneg(north), NAV_DISTANCE))
     elif direction == 'east':
         # move pers east (keep nstar same)
-        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, perp)))
+        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, normvec)))
         pers = vsum(pers, on_sphere(east, NAV_DISTANCE))
     elif direction == 'west':
         # move pers west (keep nstar same)
-        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, perp)))
+        nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, normvec)))
         pers = vsum(pers, on_sphere(vneg(east), NAV_DISTANCE))
 
     #vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
@@ -273,6 +277,14 @@ def draw(painter, cube, pers, nstar):
     north = make_unit(vsum(nstar_p, vsmul(-2, normvec)))
     east = cross(north, normvec)
 
+    vstr = lambda v: f'({v[0]:.2f}, {v[1]:.2f}, {v[2]:.2f})'
+    print('********')
+    print(vstr(pers))
+    print(vstr(nstar))
+    print(vstr(normvec))
+    print(vstr(north))
+    print(vstr(east))
+
     CENTER = 200
     SQSIZE = 120
 
@@ -309,47 +321,17 @@ def draw(painter, cube, pers, nstar):
 
                 # get coords of corner of the face
                 if face == '+x':
-                    rect = [
-                            (1., i1, j1),
-                            (1., i1, j2),
-                            (1., i2, j2),
-                            (1., i2, j1),
-                            ]
+                    rect = [ (1., i1, j1), (1., i1, j2), (1., i2, j2), (1., i2, j1) ]
                 if face == '-x':
-                    rect = [
-                            (-1., i1, j1),
-                            (-1., i1, j2),
-                            (-1., i2, j2),
-                            (-1., i2, j1),
-                            ]
+                    rect = [ (-1., i1, j1), (-1., i1, j2), (-1., i2, j2), (-1., i2, j1) ]
                 if face == '+y':
-                    rect = [
-                            (i1, 1, j1),
-                            (i1, 1, j2),
-                            (i2, 1, j2),
-                            (i2, 1, j1),
-                            ]
+                    rect = [ (i1, 1, j1), (i1, 1, j2), (i2, 1, j2), (i2, 1, j1) ]
                 if face == '-y':
-                    rect = [
-                            (i1, -1, j1),
-                            (i1, -1, j2),
-                            (i2, -1, j2),
-                            (i2, -1, j1),
-                            ]
+                    rect = [ (i1, -1, j1), (i1, -1, j2), (i2, -1, j2), (i2, -1, j1) ]
                 if face == '+z':
-                    rect = [
-                            (i1, j1, 1),
-                            (i1, j2, 1),
-                            (i2, j2, 1),
-                            (i2, j1, 1),
-                            ]
+                    rect = [ (i1, j1, 1), (i1, j2, 1), (i2, j2, 1), (i2, j1, 1) ]
                 if face == '-z':
-                    rect = [
-                            (i1, j1, -1),
-                            (i1, j2, -1),
-                            (i2, j2, -1),
-                            (i2, j1, -1),
-                            ]
+                    rect = [ (i1, j1, -1), (i1, j2, -1), (i2, j2, -1), (i2, j1, -1) ]
 
                 poly = QtGui.QPolygonF()
                 for p3d in rect:
