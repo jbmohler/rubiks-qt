@@ -176,7 +176,7 @@ def dot(v1, v2):
 def cross(v1, v2):
     return (
             v1[1]*v2[2]-v1[2]*v2[1],
-            v1[0]*v2[2]-v1[2]*v2[0],
+            -v1[0]*v2[2]+v1[2]*v2[0],
             v1[0]*v2[1]-v1[1]*v2[0],
             )
 
@@ -205,7 +205,7 @@ def norm_north(pers, nstar):
     north = make_unit(vsum(nstar, vneg(pers)))
     east = cross(north, perp)
 
-    return pers, vsum(pers, north)
+    return pers, on_sphere(vsum(pers, north), 10)
 
 def navigate(pers, nstar, direction):
     pers = on_sphere(pers, 10)
@@ -234,10 +234,10 @@ def navigate(pers, nstar, direction):
         nstar = vsum(pers, vsum(vsmul(10, north), vsmul(-10, perp)))
         pers = vsum(pers, on_sphere(vneg(east), NAV_DISTANCE))
 
-    vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
-    print('before', vstr(pers), 'north ', vstr(nstar))
-    pers, nstar = norm_north(pers, nstar)
-    print('after', vstr(pers), 'north ', vstr(nstar))
+    #vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
+    #print('before', vstr(pers), 'north ', vstr(nstar))
+    #pers, nstar = norm_north(pers, nstar)
+    #print('after', vstr(pers), 'north ', vstr(nstar))
 
     return pers, nstar
 
@@ -264,13 +264,13 @@ def draw(painter, cube, pers, nstar):
     from PySide6 import QtWidgets, QtCore, QtGui
 
     # rescale pers to be on a sphere of radius 10 from the origin
-    pers = on_sphere(pers, 10.)
-    normvec = on_sphere(pers, 1.)
+    pers = on_sphere(pers, 10)
+    nstar = on_sphere(nstar, 10)
+    normvec = make_unit(pers)
 
-    north_p = pp_plane((0, 0, 0), nstar, normvec)
+    nstar_p = pp_plane((0, 0, 0), nstar, normvec)
 
-    # make unit vector north and east on the viewing plane
-    north = make_unit(vsum(north_p, vneg(pp_plane((0, 0, 0), pers, normvec))))
+    north = make_unit(vsum(nstar_p, vsmul(-2, normvec)))
     east = cross(north, normvec)
 
     CENTER = 200
