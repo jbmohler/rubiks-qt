@@ -1,4 +1,5 @@
 import math
+import itertools
 import random
 
 HEX_COLORS = {
@@ -28,8 +29,8 @@ class Rubiks:
             '-z': FACE_ROT2,
             '+x': FACE_ROT1,
             '-x': FACE_ROT2,
-            '+y': FACE_ROT1,
-            '-y': FACE_ROT2,
+            '+y': FACE_ROT2,
+            '-y': FACE_ROT1,
             }
 
     ADJ_LEFT = {
@@ -80,6 +81,7 @@ class Rubiks:
             axis = random.choice('xyz')
             direction = random.choice('lr')
 
+            print(f'{sign}{axis}', direction)
             self.rotate(f'{sign}{axis}', direction)
 
     def solved_map(self):
@@ -127,6 +129,46 @@ class Rubiks:
         for color, ax_xy in zip(adj, pebbles):
             ax, x, y = ax_xy
             self.set_label(ax, x, y, color)
+
+        self.sanity_check()
+
+    def label_3t(self, face, xyz):
+        z2 = lambda sx: 0 if sx == '-' else 2
+
+        if face[1] == 'x':
+            if z2(face[0]) != xyz[0]:
+                raise RuntimeError(f'{face} with 3-tuple {xyz} is confusing me')
+            return self.label(face, xyz[1], xyz[2])
+        if face[1] == 'y':
+            if z2(face[0]) != xyz[1]:
+                raise RuntimeError(f'{face} with 3-tuple {xyz} is confusing me')
+            return self.label(face, xyz[0], xyz[2])
+        if face[1] == 'z':
+            if z2(face[0]) != xyz[2]:
+                raise RuntimeError(f'{face} with 3-tuple {xyz} is confusing me')
+            return self.label(face, xyz[0], xyz[1])
+        raise RuntimeError(f'unknown face {face}')
+
+    def sanity_check(self):
+        z2 = lambda sx: 0 if sx == '-' else 2
+
+        corners_target = []
+        corners_are = []
+        for s1, s2, s3 in itertools.product('-+', '-+', '-+'):
+            f1, f2, f3 = s1 + 'x', s2 + 'y', s3 + 'z'
+
+            t = [self.label(f1, 1,1 ), self.label(f2, 1, 1), self.label(f3, 1, 1)]
+            corners_target.append(''.join(sorted(t)))
+
+            coords = z2(s1), z2(s2), z2(s3)
+            t = [self.label_3t(f1, coords), self.label_3t(f2, coords), self.label_3t(f3, coords)]
+            if len(set(t)) != 3:
+                raise RuntimeError(f'corner with coords {f1}, {f2}, {f3} has duplicate color')
+            corners_are.append(''.join(sorted(t)))
+
+        if set(corners_target) != set(corners_are):
+            raise RuntimeError('mis-configured corner')
+
 
 def dot(v1, v2):
     return sum(c1*c2 for c1, c2 in zip(v1, v2))
