@@ -240,7 +240,7 @@ def navigate(pers, nstar, direction):
 
     #vstr = lambda v: f'({v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f})'
     #print('before', vstr(pers), 'north ', vstr(nstar))
-    #pers, nstar = norm_north(pers, nstar)
+    pers, nstar = norm_north(pers, nstar)
     #print('after', vstr(pers), 'north ', vstr(nstar))
 
     return pers, nstar
