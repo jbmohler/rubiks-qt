@@ -70,6 +70,9 @@ class Rubiks:
     def __init__(self):
         self.sides = self.solved_map()
 
+    def reset(self):
+        self.sides = self.solved_map()
+
     def scramble(self):
         actions = []
         for n in range(30):

@@ -27,8 +27,6 @@ class QRubix(QtWidgets.QWidget):
 
         self.cube = self.engine.Rubiks()
 
-        self.ops = self.cube.scramble()
-
     def navigate(self, direction):
         self.perspective, self.north = self.engine.navigate(
             self.perspective, self.north, direction
@@ -66,7 +64,21 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.tiles = QtWidgets.QWidget()
         self.layout = QtWidgets.QGridLayout(self.tiles)
 
-        self.rubix_views = [QRubix() for _ in range(8)]
+        self.menu = QtWidgets.QMenuBar()
+
+        self.menuFile = self.menu.addMenu("&File")
+        self.menuFile.addAction("E&xit").triggered.connect(self.close)
+
+        self.menuCube = self.menu.addMenu("&Cube")
+        self.menuCube.addAction("S&cramble").triggered.connect(self.cube_scramble)
+        self.menuCube.addAction("&Reset").triggered.connect(self.cube_reset)
+        self.menuCube.addAction("&6 Right Actions").triggered.connect(
+            self.cube_six_right_actions
+        )
+
+        self.setMenuBar(self.menu)
+
+        self.rubix_views = [QRubix() for _ in range(3)]
 
         import itertools
 
@@ -80,20 +92,15 @@ class QRubixFrame(QtWidgets.QMainWindow):
             rbx.perspective = (x * 5, y * 5, z * 5)
             rbx.north = (x * 5, y * 5 + 3, z * 5)
 
-        self.ops = [
-            (face, "l" if lr == "r" else "r") for face, lr in self.rubix_views[0].ops
-        ]
+        self.cube = self.rubix_views[0].cube
 
         self.layout.addWidget(self.rubix_views[0], 0, 0)
-        self.layout.addWidget(self.rubix_views[1], 1, 0)
-        self.layout.addWidget(self.rubix_views[2], 2, 0)
-        self.layout.addWidget(self.rubix_views[3], 0, 1)
-        self.layout.addWidget(self.rubix_views[4], 2, 1)
-        self.layout.addWidget(self.rubix_views[5], 0, 2)
-        self.layout.addWidget(self.rubix_views[6], 1, 2)
-        self.layout.addWidget(self.rubix_views[7], 2, 2)
+        self.layout.addWidget(self.rubix_views[1], 0, 1)
+        self.layout.addWidget(self.rubix_views[2], 0, 2)
 
         self.setCentralWidget(self.tiles)
+
+        self.ops = []
 
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.reset)
@@ -104,12 +111,6 @@ class QRubixFrame(QtWidgets.QMainWindow):
         # self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
         """
-        self.ops = list(reversed([
-                ('+y', 'l'),
-                ('+z', 'r'),
-                ('+y', 'r'),
-                ('+z', 'l'),
-                ]*6))
         self.ops = list(reversed([
                 ('+z', 'r'),
                 ('+y', 'r'),
@@ -135,8 +136,39 @@ class QRubixFrame(QtWidgets.QMainWindow):
             ('+x', 'l'), 
             ('-x', 'l'),
         ]
-        self.ops = []
                 """
+
+    def cube_scramble(self):
+        ops = self.cube.scramble()
+        self.ops = [(face, "l" if lr == "r" else "r") for face, lr in ops]
+
+        self.update_all()
+
+    def cube_reset(self):
+        self.ops = None
+
+        self.cube.reset()
+
+        self.update_all()
+
+    def cube_six_right_actions(self):
+        self.ops = list(
+            reversed(
+                [
+                    ("+y", "l"),
+                    ("+z", "r"),
+                    ("+y", "r"),
+                    ("+z", "l"),
+                ]
+                * 6
+            )
+        )
+
+        self.start()
+
+    def update_all(self):
+        for rbx in self.rubix_views:
+            rbx.update()
 
     def keyPressEvent(self, event):
         if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_X:
@@ -151,13 +183,12 @@ class QRubixFrame(QtWidgets.QMainWindow):
         # self.index = (self.index + 1) % 6
         # self.perspective = self._pers[self.index]
 
-        if len(self.ops) > 0:
+        if self.ops:
             face, lr = self.ops.pop()
-            print(face, lr)
+            # print(face, lr)
             self.rubix_views[0].cube.rotate(face, lr)
 
-        for rbx in self.rubix_views:
-            rbx.update()
+            self.update_all()
 
 
 if __name__ == "__main__":
