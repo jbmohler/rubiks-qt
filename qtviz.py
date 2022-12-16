@@ -4,8 +4,10 @@ from PySide6 import QtWidgets, QtCore, QtGui
 
 import rubiks
 
+
 def get_load():
     return importlib.reload(rubiks)
+
 
 class QRubix(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -19,26 +21,31 @@ class QRubix(QtWidgets.QWidget):
         self.north = (0, 10, 0)
         self.perspective = (10, 10, 10)
 
-        self.perspective, self.north = self.engine.norm_north(self.perspective, self.north)
+        self.perspective, self.north = self.engine.norm_north(
+            self.perspective, self.north
+        )
 
         self.cube = self.engine.Rubiks()
 
         self.ops = self.cube.scramble()
 
     def navigate(self, direction):
-        self.perspective, self.north = self.engine.navigate(self.perspective, self.north, direction)
+        self.perspective, self.north = self.engine.navigate(
+            self.perspective, self.north, direction
+        )
 
         self.update()
 
     def keyPressEvent(self, event):
-        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Up:
-            self.navigate('north')
-        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Down:
-            self.navigate('south')
-        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Right:
-            self.navigate('east')
-        if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Left:
-            self.navigate('west')
+        is_key_press = event.type() == QtCore.QEvent.KeyPress
+        if is_key_press and event.key() == QtCore.Qt.Key_Up:
+            self.navigate("north")
+        if is_key_press and event.key() == QtCore.Qt.Key_Down:
+            self.navigate("south")
+        if is_key_press and event.key() == QtCore.Qt.Key_Right:
+            self.navigate("east")
+        if is_key_press and event.key() == QtCore.Qt.Key_Left:
+            self.navigate("west")
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
@@ -62,6 +69,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.rubix_views = [QRubix() for _ in range(8)]
 
         import itertools
+
         corners = itertools.product([-1, 1], [-1, 1], [-1, 1])
 
         for index, rbx in enumerate(self.rubix_views):
@@ -69,10 +77,12 @@ class QRubixFrame(QtWidgets.QMainWindow):
                 rbx.cube = self.rubix_views[0].cube
 
             x, y, z = next(corners)
-            rbx.perspective = (x*5, y*5, z*5)
-            rbx.north = (x*5, y*5+3, z*5)
+            rbx.perspective = (x * 5, y * 5, z * 5)
+            rbx.north = (x * 5, y * 5 + 3, z * 5)
 
-        self.ops = [(face, 'l' if lr=='r' else 'r') for face, lr in self.rubix_views[0].ops]
+        self.ops = [
+            (face, "l" if lr == "r" else "r") for face, lr in self.rubix_views[0].ops
+        ]
 
         self.layout.addWidget(self.rubix_views[0], 0, 0)
         self.layout.addWidget(self.rubix_views[1], 1, 0)
@@ -90,8 +100,8 @@ class QRubixFrame(QtWidgets.QMainWindow):
 
         QtCore.QTimer.singleShot(1000, self.start)
 
-        #self.index = 0
-        #self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
+        # self.index = 0
+        # self._pers = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (-10, 0, 0), (0, -10, 0), (0, 0, -10)]
 
         """
         self.ops = list(reversed([
@@ -130,7 +140,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
 
     def keyPressEvent(self, event):
         if event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_X:
-            print('done')
+            print("done")
             self.timer.stop()
 
     def start(self):
@@ -138,8 +148,8 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.timer.start()
 
     def reset(self):
-        #self.index = (self.index + 1) % 6
-        #self.perspective = self._pers[self.index]
+        # self.index = (self.index + 1) % 6
+        # self.perspective = self._pers[self.index]
 
         if len(self.ops) > 0:
             face, lr = self.ops.pop()
@@ -150,7 +160,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
             rbx.update()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     w = QRubixFrame()
     w.show()
