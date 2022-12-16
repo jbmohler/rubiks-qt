@@ -18,6 +18,8 @@ class QRubix(QtWidgets.QWidget):
 
         self.engine = get_load()
 
+        self.drag_start = None
+
         self.north = (0, 10, 0)
         self.perspective = (10, 10, 10)
 
@@ -44,6 +46,25 @@ class QRubix(QtWidgets.QWidget):
             self.navigate("east")
         if is_key_press and event.key() == QtCore.Qt.Key_Left:
             self.navigate("west")
+
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.drag_start = event.position()
+
+    def mouseMoveEvent(self, event):
+        if QtCore.Qt.LeftButton not in event.buttons():
+            return
+
+        move = event.position() - self.drag_start
+        if move.manhattanLength() < QtWidgets.QApplication.startDragDistance():
+            return
+
+        if abs(move.x()) > abs(move.y()):
+            self.navigate("west" if move.x() > 0 else "east")
+        else:
+            self.navigate("north" if move.y() > 0 else "south")
+
+        self.drag_start = event.position()
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
