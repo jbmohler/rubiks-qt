@@ -91,9 +91,59 @@ class Rubiks:
     def is_solved(self):
         return self.sides == self.solved_map()
 
+    def enum_faces(self):
+        yield from self.OFFSET.keys()
+
+    def misplaced_pebbles(self):
+        solved = Rubiks()
+        results = []
+        for face in self.enum_faces():
+            for i in range(3):
+                for j in range(3):
+                    if solved.label(face, i, j) != self.label(face, i, j):
+                        peb3d = self.embed_pebble(face, (i, j))
+                        results.append((face, peb3d))
+        return results
+
+    def next_steps(self):
+        if self.is_solved():
+            return ["__done__"]
+
+        misplaced = self.misplaced_pebbles()
+        facecounts = collections.Counter(m[0] for m in misplaced)
+
+    @staticmethod
+    def embed_pebble(face, xy):
+        offset = {"x": 0, "y": 1, "z": 2}[face[1]]
+        z2 = 0 if face[0] == "-" else 2
+        return [*xy[:offset], z2, *xy[offset:]]
+
+    @staticmethod
+    def embed_spatial(face, xy):
+        offset = {"x": 0, "y": 1, "z": 2}[face[1]]
+        fsign = -1 if face[0] == "-" else 1
+        return [*xy[:offset], fsign, *xy[offset:]]
+
     def label(self, face, x, y):
         offset = self.OFFSET
         return self.sides[offset[face] * 9 + x * 3 + y]
+
+    def label_3t(self, face, xyz):
+        z2 = lambda sx: 0 if sx == "-" else 2
+
+        if face[1] == "x":
+            if z2(face[0]) != xyz[0]:
+                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
+            return self.label(face, xyz[1], xyz[2])
+        if face[1] == "y":
+            if z2(face[0]) != xyz[1]:
+                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
+            return self.label(face, xyz[0], xyz[2])
+        if face[1] == "z":
+            if z2(face[0]) != xyz[2]:
+                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
+            return self.label(face, xyz[0], xyz[1])
+        raise RuntimeError(f"unknown face {face}")
 
     def set_label(self, face, x, y, color):
         offset = self.OFFSET
@@ -134,23 +184,6 @@ class Rubiks:
             self.set_label(ax, x, y, color)
 
         self.sanity_check()
-
-    def label_3t(self, face, xyz):
-        z2 = lambda sx: 0 if sx == "-" else 2
-
-        if face[1] == "x":
-            if z2(face[0]) != xyz[0]:
-                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
-            return self.label(face, xyz[1], xyz[2])
-        if face[1] == "y":
-            if z2(face[0]) != xyz[1]:
-                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
-            return self.label(face, xyz[0], xyz[2])
-        if face[1] == "z":
-            if z2(face[0]) != xyz[2]:
-                raise RuntimeError(f"{face} with 3-tuple {xyz} is confusing me")
-            return self.label(face, xyz[0], xyz[1])
-        raise RuntimeError(f"unknown face {face}")
 
     def sanity_check(self):
         z2 = lambda sx: 0 if sx == "-" else 2
@@ -322,27 +355,20 @@ def draw(painter, cube, pers, nstar):
             for j in range(3):
                 color = cube.label(face, i, j)
 
+                # get coords of corner of the face on the plane of the face
                 i1 = -1 + i * 2 / 3
                 i2 = -1 + (i + 1) * 2 / 3
                 j1 = -1 + j * 2 / 3
                 j2 = -1 + (j + 1) * 2 / 3
 
-                # get coords of corner of the face
-                if face == "+x":
-                    rect = [(1, i1, j1), (1, i1, j2), (1, i2, j2), (1, i2, j1)]
-                if face == "-x":
-                    rect = [(-1, i1, j1), (-1, i1, j2), (-1, i2, j2), (-1, i2, j1)]
-                if face == "+y":
-                    rect = [(i1, 1, j1), (i1, 1, j2), (i2, 1, j2), (i2, 1, j1)]
-                if face == "-y":
-                    rect = [(i1, -1, j1), (i1, -1, j2), (i2, -1, j2), (i2, -1, j1)]
-                if face == "+z":
-                    rect = [(i1, j1, 1), (i1, j2, 1), (i2, j2, 1), (i2, j1, 1)]
-                if face == "-z":
-                    rect = [(i1, j1, -1), (i1, j2, -1), (i2, j2, -1), (i2, j1, -1)]
+                rect_plane = [(i1, j1), (i1, j2), (i2, j2), (i2, j1)]
 
+                # embed this rectangle in 3d
+                rect_3d = [cube.embed_spatial(face, t) for t in rect_plane]
+
+                # project this rectangle to the plane tangent to the 2 sphere
                 poly = QtGui.QPolygonF()
-                for p3d in rect:
+                for p3d in rect_3d:
                     on_plane = pp_plane(p3d, pers, normvec)
                     poly.append(
                         QtCore.QPointF(
@@ -351,9 +377,8 @@ def draw(painter, cube, pers, nstar):
                         )
                     )
 
-                center = poly.boundingRect().center()
-
                 # draw polygon
                 painter.setBrush(QtGui.QColor(HEX_COLORS[color]))
                 painter.drawPolygon(poly)
+                # center = poly.boundingRect().center()
                 # painter.drawText(center, f'{i}-{j}')

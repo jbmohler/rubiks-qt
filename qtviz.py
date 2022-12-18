@@ -96,6 +96,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.menuCube.addAction("&6 Right Actions").triggered.connect(
             self.cube_six_right_actions
         )
+        self.menuCube.addAction("Auto-solve").triggered.connect(self.cube_auto_solve)
 
         self.setMenuBar(self.menu)
 
@@ -161,7 +162,8 @@ class QRubixFrame(QtWidgets.QMainWindow):
 
     def cube_scramble(self):
         ops = self.cube.scramble()
-        self.ops = [(face, "l" if lr == "r" else "r") for face, lr in ops]
+
+        self.solve = [(face, "l" if lr == "r" else "r") for face, lr in ops]
 
         self.update_all()
 
@@ -169,6 +171,11 @@ class QRubixFrame(QtWidgets.QMainWindow):
         self.ops = None
 
         self.cube.reset()
+
+        self.update_all()
+
+    def cube_auto_solve(self):
+        self.ops = ["__solve__"]
 
         self.update_all()
 
@@ -205,7 +212,13 @@ class QRubixFrame(QtWidgets.QMainWindow):
         # self.perspective = self._pers[self.index]
 
         if self.ops:
-            face, lr = self.ops.pop()
+            nxt_op = self.ops.pop()
+
+            if isinstance(nxt_op, str):
+                if nxt_op == "__solve__":
+                    self.ops = self.cube.next_steps()
+
+            face, lr = nxt_op
             # print(face, lr)
             self.rubix_views[0].cube.rotate(face, lr)
 
