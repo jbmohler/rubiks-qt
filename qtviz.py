@@ -3,6 +3,7 @@ import importlib
 from PySide6 import QtWidgets, QtCore, QtGui
 
 import rubiks
+import solver
 
 
 def get_load():
@@ -102,6 +103,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
 
         self.rubix_views = [QRubix() for _ in range(3)]
 
+        self.solver = solver.Solver()
         import itertools
 
         corners = itertools.product([-1, 1], [-1, 1], [-1, 1])
@@ -161,7 +163,7 @@ class QRubixFrame(QtWidgets.QMainWindow):
                 """
 
     def cube_scramble(self):
-        ops = self.cube.scramble()
+        ops = self.solver.scramble(self.cube)
 
         self.solve = [(face, "l" if lr == "r" else "r") for face, lr in ops]
 
@@ -216,11 +218,11 @@ class QRubixFrame(QtWidgets.QMainWindow):
 
             if isinstance(nxt_op, str):
                 if nxt_op == "__solve__":
-                    self.ops = self.cube.next_steps()
-
-            face, lr = nxt_op
-            # print(face, lr)
-            self.rubix_views[0].cube.rotate(face, lr)
+                    self.ops = self.solver.next_steps(self.cube)
+            else:
+                face, lr = nxt_op
+                # print(face, lr)
+                self.rubix_views[0].cube.rotate(face, lr)
 
             self.update_all()
 

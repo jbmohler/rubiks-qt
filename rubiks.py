@@ -1,6 +1,5 @@
 import math
 import itertools
-import random
 
 HEX_COLORS = {
     "W": "#ffffff",
@@ -73,44 +72,11 @@ class Rubiks:
     def reset(self):
         self.sides = self.solved_map()
 
-    def scramble(self):
-        actions = []
-        for n in range(30):
-            sign = random.choice("+-")
-            axis = random.choice("xyz")
-            direction = random.choice("lr")
-
-            print(f"{sign}{axis}", direction)
-            actions.append((f"{sign}{axis}", direction))
-            self.rotate(f"{sign}{axis}", direction)
-        return actions
-
     def solved_map(self):
         return [color for color in self.COLORS for _ in range(9)]
 
-    def is_solved(self):
-        return self.sides == self.solved_map()
-
     def enum_faces(self):
         yield from self.OFFSET.keys()
-
-    def misplaced_pebbles(self):
-        solved = Rubiks()
-        results = []
-        for face in self.enum_faces():
-            for i in range(3):
-                for j in range(3):
-                    if solved.label(face, i, j) != self.label(face, i, j):
-                        peb3d = self.embed_pebble(face, (i, j))
-                        results.append((face, peb3d))
-        return results
-
-    def next_steps(self):
-        if self.is_solved():
-            return ["__done__"]
-
-        misplaced = self.misplaced_pebbles()
-        facecounts = collections.Counter(m[0] for m in misplaced)
 
     @staticmethod
     def embed_pebble(face, xy):
